@@ -9,9 +9,9 @@ import java.sql.Statement;
 
 public class Main {
     public static void main(String[] args) {
-        String url = "jdbc:mysql://192.168.111.152:3306/pizza_admin";
-        String user = "lehrer";
-        String password = "1234";
+        String url = "jdbc:mysql://127.0.0.1:3306/knowledge-xchange";
+        String user = "root";
+        String password = "admin";
 
         String query = "SELECT * FROM Kunden";
 

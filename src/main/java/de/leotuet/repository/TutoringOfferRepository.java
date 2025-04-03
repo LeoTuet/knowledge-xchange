@@ -8,71 +8,71 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.leotuet.models.StudentClass;
+import de.leotuet.models.TutoringOffer;
 
-public class StudentClassRepository {
+public class TutoringOfferRepository {
 	private final Connection databaseConnection;
 
-	public StudentClassRepository(Connection databaseConnection) {
+	public TutoringOfferRepository(Connection databaseConnection) {
 		this.databaseConnection = databaseConnection;
 	}
 
 	public void createTable() throws SQLException {
-		String query = "CREATE TABLE IF NOT EXISTS student_classes (" +
+		String query = "CREATE TABLE IF NOT EXISTS tutoring_offers (" +
 				"id SERIAL PRIMARY KEY, " +
-				"year INT NOT NULL, " +
-				"specialization VARCHAR(255) NOT NULL)";
+				"tutor_id INT NOT NULL, " +
+				"subject_id INT NOT NULL, " +
+				"FOREIGN KEY (subject_id) REFERENCES subjects(id))";
 		try (Statement statement = databaseConnection.createStatement()) {
 			statement.executeUpdate(query);
 		}
 	}
 
-	public void create(int year, String specialization) throws SQLException {
-		String query = "INSERT INTO student_classes (id, year, specialization) VALUES (default, ?, ?)";
+	public void create(int tutorId, int subjectId) throws SQLException {
+		String query = "INSERT INTO tutoring_offers (id, tutor_id, subject_id) VALUES (default, ?, ?)";
 		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, year);
-			statement.setString(2, specialization);
+			statement.setInt(1, tutorId);
+			statement.setInt(2, subjectId);
 			statement.executeUpdate();
 		}
 	}
 
-	public StudentClass getById(int id) throws SQLException {
-		String query = "SELECT * FROM student_classes WHERE id = ?";
+	public TutoringOffer getById(int id) throws SQLException {
+		String query = "SELECT * FROM tutoring_offers WHERE id = ?";
 		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
 			statement.setInt(1, id);
 			try (ResultSet resultSet = statement.executeQuery()) {
 				if (resultSet.next()) {
-					return new StudentClass(
+					return new TutoringOffer(
 							resultSet.getInt("id"),
-							resultSet.getInt("year"),
-							resultSet.getString("specialization").charAt(0));
+							resultSet.getInt("tutor_id"),
+							resultSet.getInt("subject_id"));
 				}
 			}
 		}
 		return null;
 	}
 
-	public List<StudentClass> getAll() throws SQLException {
-		List<StudentClass> studentClasses = new ArrayList<>();
-		String query = "SELECT * FROM student_classes";
+	public List<TutoringOffer> getAll() throws SQLException {
+		List<TutoringOffer> tutoringOffers = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_offers";
 		try (Statement statement = databaseConnection.createStatement();
 				ResultSet resultSet = statement.executeQuery(query)) {
 			while (resultSet.next()) {
-				studentClasses.add(new StudentClass(
+				tutoringOffers.add(new TutoringOffer(
 						resultSet.getInt("id"),
-						resultSet.getInt("year"),
-						resultSet.getString("specialization").charAt(0)));
+						resultSet.getInt("tutor_id"),
+						resultSet.getInt("subject_id")));
 			}
 		}
-		return studentClasses;
+		return tutoringOffers;
 	}
 
 	public void deleteById(int id) throws SQLException {
-		String query = "DELETE FROM student_classes WHERE id = ?";
+		String query = "DELETE FROM tutoring_offers WHERE id = ?";
 		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
 			statement.setInt(1, id);
 			statement.executeUpdate();
 		}
 	}
-
 }

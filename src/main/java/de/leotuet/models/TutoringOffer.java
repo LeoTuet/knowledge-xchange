@@ -22,4 +22,13 @@ public class TutoringOffer {
 	public int getSubjectId() {
 		return subjectId;
 	}
+
+	@Override
+	public String toString() {
+		return "TutoringOffer{" +
+				"id=" + id +
+				", tutorId=" + tutorId +
+				", subjectId=" + subjectId +
+				'}';
+	}
 }

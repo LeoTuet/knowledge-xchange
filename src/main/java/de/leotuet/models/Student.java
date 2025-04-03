@@ -29,4 +29,14 @@ public class Student {
 		return studentClassId;
 	}
 
+	@Override
+	public String toString() {
+		return "Student{" +
+				"id=" + id +
+				", firstName='" + firstName + '\'' +
+				", lastName='" + lastName + '\'' +
+				", studentClassId=" + studentClassId +
+				'}';
+	}
+
 }

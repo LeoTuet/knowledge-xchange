@@ -22,4 +22,13 @@ public class StudentClass {
 	public char getSpecialization() {
 		return specialization;
 	}
+
+	@Override
+	public String toString() {
+		return "StudentClass{" +
+				"id=" + id +
+				", year=" + year +
+				", specialization=" + specialization +
+				'}';
+	}
 }
