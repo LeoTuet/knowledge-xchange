@@ -6,7 +6,7 @@ public class TutoringRequest {
 	private final int subjectId;
 	private final Integer preferredTutorId;
 
-	public TutoringRequest(int id, int tutorId, int subjectId, int preferredTutorId) {
+	public TutoringRequest(int id, int tutorId, int subjectId, Integer preferredTutorId) {
 		this.id = id;
 		this.studentId = tutorId;
 		this.subjectId = subjectId;

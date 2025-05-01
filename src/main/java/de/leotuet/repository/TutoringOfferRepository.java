@@ -22,57 +22,87 @@ public class TutoringOfferRepository {
 				"id SERIAL PRIMARY KEY, " +
 				"tutor_id INT NOT NULL, " +
 				"subject_id INT NOT NULL, " +
-				"FOREIGN KEY (subject_id) REFERENCES subjects(id))";
-		try (Statement statement = databaseConnection.createStatement()) {
-			statement.executeUpdate(query);
-		}
+				"FOREIGN KEY (subject_id) REFERENCES subjects(id), " +
+				"FOREIGN KEY (tutor_id) REFERENCES students(id))";
+		Statement statement = databaseConnection.createStatement();
+		statement.executeUpdate(query);
 	}
 
-	public void create(int tutorId, int subjectId) throws SQLException {
+	public TutoringOffer createAndGet(int tutorId, int subjectId) {
 		String query = "INSERT INTO tutoring_offers (id, tutor_id, subject_id) VALUES (default, ?, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, tutorId);
 			statement.setInt(2, subjectId);
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			return null;
 		}
+
+		return getByAttributes(tutorId, subjectId);
 	}
 
-	public TutoringOffer getById(int id) throws SQLException {
-		String query = "SELECT * FROM tutoring_offers WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					return new TutoringOffer(
-							resultSet.getInt("id"),
-							resultSet.getInt("tutor_id"),
-							resultSet.getInt("subject_id"));
-				}
+	public TutoringOffer getByAttributes(int tutorId, int subjectId) {
+		String query = "SELECT * FROM tutoring_offers WHERE tutor_id = ? AND subject_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, tutorId);
+			statement.setInt(2, subjectId);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToTutoringOffer(resultSet);
 			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return null;
 	}
 
-	public List<TutoringOffer> getAll() throws SQLException {
+	public TutoringOffer getById(int id) {
+		String query = "SELECT * FROM tutoring_offers WHERE id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, id);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToTutoringOffer(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+
+		return null;
+
+	}
+
+	public List<TutoringOffer> getAll() {
 		List<TutoringOffer> tutoringOffers = new ArrayList<>();
 		String query = "SELECT * FROM tutoring_offers";
-		try (Statement statement = databaseConnection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)) {
+		try {
+			Statement statement = databaseConnection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
 			while (resultSet.next()) {
-				tutoringOffers.add(new TutoringOffer(
-						resultSet.getInt("id"),
-						resultSet.getInt("tutor_id"),
-						resultSet.getInt("subject_id")));
+				tutoringOffers.add(resultSetToTutoringOffer(resultSet));
 			}
+		} catch (SQLException e) {
+			return tutoringOffers;
 		}
+
 		return tutoringOffers;
 	}
 
 	public void deleteById(int id) throws SQLException {
 		String query = "DELETE FROM tutoring_offers WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			statement.executeUpdate();
-		}
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, id);
+		statement.executeUpdate();
+	}
+
+	private TutoringOffer resultSetToTutoringOffer(ResultSet resultSet) throws SQLException {
+		return new TutoringOffer(
+				resultSet.getInt("id"),
+				resultSet.getInt("tutor_id"),
+				resultSet.getInt("subject_id"));
 	}
 }

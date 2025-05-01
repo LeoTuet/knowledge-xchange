@@ -24,59 +24,87 @@ public class StudentRepository {
 				"last_name VARCHAR(255) NOT NULL, " +
 				"student_class_id INT NOT NULL, " +
 				"FOREIGN KEY (student_class_id) REFERENCES student_classes(id))";
-		try (Statement statement = databaseConnection.createStatement()) {
-			statement.executeUpdate(query);
-		}
+		Statement statement = databaseConnection.createStatement();
+		statement.executeUpdate(query);
 	}
 
-	public void create(String firstName, String lastName, int studentClassId) throws SQLException {
+	public Student create(String firstName, String lastName, int studentClassId) {
 		String query = "INSERT INTO students (id, first_name, last_name, student_class_id) VALUES (default, ?, ?, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setString(1, firstName);
 			statement.setString(2, lastName);
 			statement.setInt(3, studentClassId);
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			return null;
 		}
+
+		return getByAttributes(firstName, lastName, studentClassId);
 	}
 
-	public Student getById(int id) throws SQLException {
-		String query = "SELECT * FROM students WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					return new Student(
-							resultSet.getInt("id"),
-							resultSet.getString("first_name"),
-							resultSet.getString("last_name"),
-							resultSet.getInt("student_class_id"));
-				}
+	public Student getByAttributes(String firstName, String lastName, int studentClassId) {
+		String query = "SELECT * FROM students WHERE first_name = ? AND last_name = ? AND student_class_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setString(1, firstName);
+			statement.setString(2, lastName);
+			statement.setInt(3, studentClassId);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToStudent(resultSet);
 			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return null;
 	}
 
-	public List<Student> getAll() throws SQLException {
+	public Student getById(int id) {
+		String query = "SELECT * FROM students WHERE id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, id);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToStudent(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+
+		return null;
+	}
+
+	public List<Student> getAll() {
 		List<Student> students = new ArrayList<>();
 		String query = "SELECT * FROM students";
-		try (Statement statement = databaseConnection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)) {
+		try {
+			Statement statement = databaseConnection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
 			while (resultSet.next()) {
-				students.add(new Student(
-						resultSet.getInt("id"),
-						resultSet.getString("first_name"),
-						resultSet.getString("last_name"),
-						resultSet.getInt("student_class_id")));
+				students.add(resultSetToStudent(resultSet));
 			}
+		} catch (SQLException e) {
+			return students;
 		}
+
 		return students;
 	}
 
 	public void deleteById(int id) throws SQLException {
 		String query = "DELETE FROM students WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			statement.executeUpdate();
-		}
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, id);
+		statement.executeUpdate();
+	}
+
+	private Student resultSetToStudent(ResultSet resultSet) throws SQLException {
+		return new Student(
+				resultSet.getInt("id"),
+				resultSet.getString("first_name"),
+				resultSet.getString("last_name"),
+				resultSet.getInt("student_class_id"));
 	}
 }

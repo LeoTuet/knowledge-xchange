@@ -24,41 +24,49 @@ public class TutoringOfferTimeSlotRepository {
 				"PRIMARY KEY (offer_id, time_slot_id), " +
 				"FOREIGN KEY (offer_id) REFERENCES tutoring_offers(id), " +
 				"FOREIGN KEY (time_slot_id) REFERENCES time_slots(id))";
-		try (Statement statement = databaseConnection.createStatement()) {
-			statement.executeUpdate(query);
-		}
+		Statement statement = databaseConnection.createStatement();
+		statement.executeUpdate(query);
 	}
 
-	public void create(int offerId, int timeSlotId) throws SQLException {
+	public void create(int offerId, int timeSlotId) {
 		String query = "INSERT INTO tutoring_offer_time_slots (offer_id, time_slot_id) VALUES (?, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, offerId);
 			statement.setInt(2, timeSlotId);
 			statement.executeUpdate();
+		} catch (SQLException e) {
 		}
+
 	}
 
-	public List<TutoringOfferTimeSlot> getByOfferId(int offerId) throws SQLException {
+	public List<TutoringOfferTimeSlot> getByOfferId(int offerId) {
 		List<TutoringOfferTimeSlot> timeSlots = new ArrayList<>();
 		String query = "SELECT * FROM tutoring_offer_time_slots WHERE offer_id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, offerId);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				while (resultSet.next()) {
-					timeSlots.add(new TutoringOfferTimeSlot(
-							resultSet.getInt("offer_id"),
-							resultSet.getInt("time_slot_id")));
-				}
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				timeSlots.add(resultSetToTutoringOfferTimeSlot(resultSet));
 			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return timeSlots;
 	}
 
 	public void deleteByOfferId(int offerId) throws SQLException {
 		String query = "DELETE FROM tutoring_offer_time_slots WHERE offer_id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, offerId);
-			statement.executeUpdate();
-		}
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, offerId);
+		statement.executeUpdate();
+	}
+
+	private TutoringOfferTimeSlot resultSetToTutoringOfferTimeSlot(ResultSet resultSet) throws SQLException {
+		return new TutoringOfferTimeSlot(
+				resultSet.getInt("offer_id"),
+				resultSet.getInt("time_slot_id"));
 	}
 }

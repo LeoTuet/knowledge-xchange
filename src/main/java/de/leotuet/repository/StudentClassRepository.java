@@ -22,57 +22,90 @@ public class StudentClassRepository {
 				"id SERIAL PRIMARY KEY, " +
 				"year INT NOT NULL, " +
 				"specialization VARCHAR(255) NOT NULL)";
-		try (Statement statement = databaseConnection.createStatement()) {
-			statement.executeUpdate(query);
-		}
+		Statement statement = databaseConnection.createStatement();
+		statement.executeUpdate(query);
 	}
 
-	public void create(int year, String specialization) throws SQLException {
+	public StudentClass upsertAndGet(int year, String specialization) {
+		StudentClass existingClass = getByAttributes(year, specialization);
+		if (existingClass != null) {
+			return existingClass;
+		}
+
 		String query = "INSERT INTO student_classes (id, year, specialization) VALUES (default, ?, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, year);
 			statement.setString(2, specialization);
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			return null;
 		}
+
+		return getByAttributes(year, specialization);
 	}
 
-	public StudentClass getById(int id) throws SQLException {
-		String query = "SELECT * FROM student_classes WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					return new StudentClass(
-							resultSet.getInt("id"),
-							resultSet.getInt("year"),
-							resultSet.getString("specialization").charAt(0));
-				}
+	public StudentClass getByAttributes(int year, String specialization) {
+		String query = "SELECT * FROM student_classes WHERE year = ? AND specialization = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, year);
+			statement.setString(2, specialization);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToStudentClass(resultSet);
 			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return null;
 	}
 
-	public List<StudentClass> getAll() throws SQLException {
+	public StudentClass getById(int id) {
+		String query = "SELECT * FROM student_classes WHERE id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, id);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToStudentClass(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+
+		return null;
+	}
+
+	public List<StudentClass> getAll() {
 		List<StudentClass> studentClasses = new ArrayList<>();
 		String query = "SELECT * FROM student_classes";
-		try (Statement statement = databaseConnection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)) {
+		try {
+			Statement statement = databaseConnection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
 			while (resultSet.next()) {
-				studentClasses.add(new StudentClass(
-						resultSet.getInt("id"),
-						resultSet.getInt("year"),
-						resultSet.getString("specialization").charAt(0)));
+				studentClasses.add(resultSetToStudentClass(resultSet));
 			}
+		} catch (SQLException e) {
+			return studentClasses;
 		}
+
 		return studentClasses;
 	}
 
 	public void deleteById(int id) throws SQLException {
 		String query = "DELETE FROM student_classes WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			statement.executeUpdate();
-		}
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, id);
+		statement.executeUpdate();
+	}
+
+	private StudentClass resultSetToStudentClass(ResultSet resultSet) throws SQLException {
+		return new StudentClass(
+				resultSet.getInt("id"),
+				resultSet.getInt("year"),
+				resultSet.getString("specialization").charAt(0));
 	}
 
 }

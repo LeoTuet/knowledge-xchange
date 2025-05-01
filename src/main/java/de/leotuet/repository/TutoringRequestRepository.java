@@ -27,14 +27,14 @@ public class TutoringRequestRepository {
 				"FOREIGN KEY (student_id) REFERENCES students(id), " +
 				"FOREIGN KEY (subject_id) REFERENCES subjects(id), " +
 				"FOREIGN KEY (preferred_tutor_id) REFERENCES tutors(id))";
-		try (Statement statement = databaseConnection.createStatement()) {
-			statement.executeUpdate(query);
-		}
+		Statement statement = databaseConnection.createStatement();
+		statement.executeUpdate(query);
 	}
 
-	public void create(int studentId, int subjectId, Integer preferredTutorId) throws SQLException {
+	public TutoringRequest createAndGet(int studentId, int subjectId, Integer preferredTutorId) {
 		String query = "INSERT INTO tutoring_requests (id, student_id, subject_id, preferred_tutor_id) VALUES (default, ?, ?, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, studentId);
 			statement.setInt(2, subjectId);
 			if (preferredTutorId != null) {
@@ -43,47 +43,79 @@ public class TutoringRequestRepository {
 				statement.setNull(3, Types.INTEGER);
 			}
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			return null;
 		}
+
+		return getByAttributes(studentId, subjectId, preferredTutorId);
 	}
 
-	public TutoringRequest getById(int id) throws SQLException {
-		String query = "SELECT * FROM tutoring_requests WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					return new TutoringRequest(
-							resultSet.getInt("id"),
-							resultSet.getInt("student_id"),
-							resultSet.getInt("subject_id"),
-							resultSet.getObject("preferred_tutor_id", Integer.class));
-				}
+	public TutoringRequest getByAttributes(int studentId, int subjectId, Integer preferredTutorId) {
+		String query = "SELECT * FROM tutoring_requests WHERE student_id = ? AND subject_id = ? AND preferred_tutor_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, studentId);
+			statement.setInt(2, subjectId);
+			if (preferredTutorId != null) {
+				statement.setInt(3, preferredTutorId);
+			} else {
+				statement.setNull(3, Types.INTEGER);
 			}
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToTutoringRequest(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return null;
 	}
 
-	public List<TutoringRequest> getAll() throws SQLException {
+	public TutoringRequest getById(int id) {
+		String query = "SELECT * FROM tutoring_requests WHERE id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, id);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToTutoringRequest(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+
+		return null;
+	}
+
+	public List<TutoringRequest> getAll() {
 		List<TutoringRequest> requests = new ArrayList<>();
 		String query = "SELECT * FROM tutoring_requests";
-		try (Statement statement = databaseConnection.createStatement();
-			 ResultSet resultSet = statement.executeQuery(query)) {
+		try {
+			Statement statement = databaseConnection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
 			while (resultSet.next()) {
-				requests.add(new TutoringRequest(
-						resultSet.getInt("id"),
-						resultSet.getInt("student_id"),
-						resultSet.getInt("subject_id"),
-						resultSet.getObject("preferred_tutor_id", Integer.class)));
+				requests.add(resultSetToTutoringRequest(resultSet));
 			}
+		} catch (SQLException e) {
+			return requests;
 		}
+
 		return requests;
 	}
 
 	public void deleteById(int id) throws SQLException {
 		String query = "DELETE FROM tutoring_requests WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			statement.executeUpdate();
-		}
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, id);
+		statement.executeUpdate();
+	}
+
+	private TutoringRequest resultSetToTutoringRequest(ResultSet resultSet) throws SQLException {
+		return new TutoringRequest(
+				resultSet.getInt("id"),
+				resultSet.getInt("student_id"),
+				resultSet.getInt("subject_id"),
+				resultSet.getObject("preferred_tutor_id", Integer.class));
 	}
 }

@@ -21,61 +21,79 @@ public class SubjectRepository {
 		String query = "CREATE TABLE IF NOT EXISTS subjects (" +
 				"id SERIAL PRIMARY KEY, " +
 				"name VARCHAR(255) NOT NULL)";
-		try (Statement statement = databaseConnection.createStatement()) {
-			statement.executeUpdate(query);
-		}
+		Statement statement = databaseConnection.createStatement();
+		statement.executeUpdate(query);
 	}
 
-	public Subject create(String name) throws SQLException {
+	public Subject upsertAndGet(String name) {
+		Subject existingSubject = getByAttributes(name);
+		if (existingSubject != null) {
+			return existingSubject;
+		}
+
 		String query = "INSERT INTO subjects (id, name) VALUES (default, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setString(1, name);
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			return null;
 		}
-		return getByName(name);
+
+		return getByAttributes(name);
 	}
 
-	public Subject getByName(String name) throws SQLException {
+	public Subject getByAttributes(String name) {
 		String query = "SELECT * FROM subjects WHERE name = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setString(1, name);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					return new Subject(
-							resultSet.getInt("id"),
-							resultSet.getString("name"));
-				}
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToSubject(resultSet);
 			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return null;
 	}
 
-	public Subject getById(int id) throws SQLException {
+	public Subject getById(int id) {
 		String query = "SELECT * FROM subjects WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, id);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					return new Subject(
-							resultSet.getInt("id"),
-							resultSet.getString("name"));
-				}
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToSubject(resultSet);
 			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return null;
 	}
 
-	public List<Subject> getAll() throws SQLException {
+	public List<Subject> getAll() {
 		List<Subject> subjects = new ArrayList<>();
 		String query = "SELECT * FROM subjects";
-		try (Statement statement = databaseConnection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)) {
+		try {
+			Statement statement = databaseConnection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
 			while (resultSet.next()) {
-				subjects.add(new Subject(
-						resultSet.getInt("id"),
-						resultSet.getString("name")));
+				subjects.add(resultSetToSubject(resultSet));
 			}
+		} catch (SQLException e) {
+			return subjects;
 		}
+
 		return subjects;
+	}
+
+	private Subject resultSetToSubject(ResultSet resultSet) throws SQLException {
+		return new Subject(
+				resultSet.getInt("id"),
+				resultSet.getString("name"));
 	}
 }

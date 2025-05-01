@@ -4,8 +4,9 @@ import java.util.Scanner;
 
 public class CommandLineInterface {
 
-    public static String getStringInput() {
+    public static String getString(String message) {
         String input;
+        System.out.print(message + " ");
         try (Scanner sc = new Scanner(System.in)) {
             input = sc.nextLine();
             sc.close();
@@ -13,8 +14,9 @@ public class CommandLineInterface {
         return input;
     }
 
-    public static int getIntInput() {
+    public static int getInt(String message) {
         int input;
+        System.out.print(message + " ");
         try (Scanner sc = new Scanner(System.in)) {
             input = sc.nextInt();
             sc.close();
@@ -27,7 +29,7 @@ public class CommandLineInterface {
         boolean validChoice = false;
         while (!validChoice) {
             printChoices(options);
-            choice = getIntInput();
+            choice = getInt("Auswahl:");
             if (choice < 1 || choice > options.length) {
                 System.out
                         .println("Ungültige Auswahl. Bitte wählen Sie eine Zahl zwischen 1 und " + options.length);
@@ -43,6 +45,5 @@ public class CommandLineInterface {
         for (int i = 0; i < options.length; i++) {
             System.out.println((i + 1) + ". " + options[i]);
         }
-        System.out.print("Auswahl: ");
     }
 }

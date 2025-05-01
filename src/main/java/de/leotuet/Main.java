@@ -13,6 +13,7 @@ public class Main {
     };
 
     public static void main(String[] args) {
+        System.out.println((int) '1');
         boolean running = true;
         String url = "jdbc:mysql://127.0.0.1:3306/knowledge-xchange";
         String user = "root";
@@ -23,14 +24,13 @@ public class Main {
                 int choice = CommandLineInterface.getChoice(PROGRAM_ACTIONS);
                 Importer importer = new Importer(conn);
                 switch (choice) {
-                    case 1 -> importer.importCSV();
-                    case 2 -> importer.importManual();
+                    case 1 -> importer.startCSVImport();
+                    case 2 -> importer.startManualImport();
                     case 3 -> System.out.println("Generiere Gruppen");
                     case 4 -> {
-                        System.out.println("Beende Programm");
+                        System.out.println("Beende Programm...");
                         running = false;
                     }
-                    default -> System.out.println("Ungültige Auswahl");
                 }
             }
         } catch (SQLException e) {
