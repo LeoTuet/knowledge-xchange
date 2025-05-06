@@ -17,9 +17,9 @@ public class TutoringOfferRepository {
 		this.databaseConnection = databaseConnection;
 	}
 
-	public void createTable() throws SQLException {
+	public static void createTable(Connection databaseConnection) throws SQLException {
 		String query = "CREATE TABLE IF NOT EXISTS tutoring_offers (" +
-				"id SERIAL PRIMARY KEY, " +
+				"id INT AUTO_INCREMENT PRIMARY KEY NOT NULL, " +
 				"tutor_id INT NOT NULL, " +
 				"subject_id INT NOT NULL, " +
 				"FOREIGN KEY (subject_id) REFERENCES subjects(id), " +

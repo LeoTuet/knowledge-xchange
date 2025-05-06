@@ -12,6 +12,13 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - my-datavolume:/var/lib/mysql
+      - knowledge-xchange-data:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_ARBITRARY=1
 volumes:
-  my-datavolume:
+  knowledge-xchange-data:

@@ -20,6 +20,7 @@ public class Main {
         String password = "admin";
 
         try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            DatabaseCreator.createTables(conn);
             while (running) {
                 int choice = CommandLineInterface.getChoice(PROGRAM_ACTIONS);
                 Importer importer = new Importer(conn);

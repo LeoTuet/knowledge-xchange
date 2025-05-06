@@ -17,9 +17,9 @@ public class TimeSlotRepository {
 		this.databaseConnection = databaseConnection;
 	}
 
-	public void createTable() throws SQLException {
+	public static void createTable(Connection databaseConnection) throws SQLException {
 		String query = "CREATE TABLE IF NOT EXISTS time_slots (" +
-				"id SERIAL PRIMARY KEY, " +
+				"id INT AUTO_INCREMENT PRIMARY KEY NOT NULL, " +
 				"week_day VARCHAR(255) NOT NULL, " +
 				"start INT NOT NULL, " +
 				"end INT NOT NULL)";

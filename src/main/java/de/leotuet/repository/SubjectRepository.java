@@ -17,9 +17,9 @@ public class SubjectRepository {
 		this.databaseConnection = databaseConnection;
 	}
 
-	public void createTable() throws SQLException {
+	public static void createTable(Connection databaseConnection) throws SQLException {
 		String query = "CREATE TABLE IF NOT EXISTS subjects (" +
-				"id SERIAL PRIMARY KEY, " +
+				"id INT AUTO_INCREMENT PRIMARY KEY NOT NULL, " +
 				"name VARCHAR(255) NOT NULL)";
 		Statement statement = databaseConnection.createStatement();
 		statement.executeUpdate(query);

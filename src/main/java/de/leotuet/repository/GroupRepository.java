@@ -17,12 +17,12 @@ public class GroupRepository {
 		this.databaseConnection = databaseConnection;
 	}
 
-	public void createTable() throws SQLException {
-		String query = "CREATE TABLE IF NOT EXISTS groups (" +
-				"id SERIAL PRIMARY KEY, " +
-				"offer_id INT NOT NULL, " +
-				"time_slot_id INT NOT NULL, " +
-				"FOREIGN KEY (offer_id) REFERENCES tutoring_offers(id), " +
+	public static void createTable(Connection databaseConnection) throws SQLException {
+		String query = "CREATE TABLE IF NOT EXISTS tutoring_groups (" +
+				"id INT AUTO_INCREMENT PRIMARY KEY NOT NULL," +
+				"offer_id INT NOT NULL," +
+				"time_slot_id INT NOT NULL," +
+				"FOREIGN KEY (offer_id) REFERENCES tutoring_offers(id)," +
 				"FOREIGN KEY (time_slot_id) REFERENCES time_slots(id))";
 		try (Statement statement = databaseConnection.createStatement()) {
 			statement.executeUpdate(query);
@@ -30,7 +30,7 @@ public class GroupRepository {
 	}
 
 	public void create(int offerId, int timeSlotId) throws SQLException {
-		String query = "INSERT INTO groups (id, offer_id, time_slot_id) VALUES (default, ?, ?)";
+		String query = "INSERT INTO tutoring_groups (id, offer_id, time_slot_id) VALUES (default, ?, ?)";
 		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
 			statement.setInt(1, offerId);
 			statement.setInt(2, timeSlotId);
@@ -39,7 +39,7 @@ public class GroupRepository {
 	}
 
 	public Group getById(int id) throws SQLException {
-		String query = "SELECT * FROM groups WHERE id = ?";
+		String query = "SELECT * FROM tutoring_groups WHERE id = ?";
 		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
 			statement.setInt(1, id);
 			try (ResultSet resultSet = statement.executeQuery()) {
@@ -56,9 +56,9 @@ public class GroupRepository {
 
 	public List<Group> getAll() throws SQLException {
 		List<Group> groups = new ArrayList<>();
-		String query = "SELECT * FROM groups";
+		String query = "SELECT * FROM tutoring_groups";
 		try (Statement statement = databaseConnection.createStatement();
-			 ResultSet resultSet = statement.executeQuery(query)) {
+				ResultSet resultSet = statement.executeQuery(query)) {
 			while (resultSet.next()) {
 				groups.add(new Group(
 						resultSet.getInt("id"),
@@ -70,7 +70,7 @@ public class GroupRepository {
 	}
 
 	public void deleteById(int id) throws SQLException {
-		String query = "DELETE FROM groups WHERE id = ?";
+		String query = "DELETE FROM tutoring_groups WHERE id = ?";
 		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
 			statement.setInt(1, id);
 			statement.executeUpdate();

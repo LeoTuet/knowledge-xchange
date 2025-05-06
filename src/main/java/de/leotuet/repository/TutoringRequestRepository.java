@@ -18,15 +18,15 @@ public class TutoringRequestRepository {
 		this.databaseConnection = databaseConnection;
 	}
 
-	public void createTable() throws SQLException {
+	public static void createTable(Connection databaseConnection) throws SQLException {
 		String query = "CREATE TABLE IF NOT EXISTS tutoring_requests (" +
-				"id SERIAL PRIMARY KEY, " +
+				"id INT AUTO_INCREMENT PRIMARY KEY NOT NULL, " +
 				"student_id INT NOT NULL, " +
 				"subject_id INT NOT NULL, " +
 				"preferred_tutor_id INT NULL, " +
 				"FOREIGN KEY (student_id) REFERENCES students(id), " +
 				"FOREIGN KEY (subject_id) REFERENCES subjects(id), " +
-				"FOREIGN KEY (preferred_tutor_id) REFERENCES tutors(id))";
+				"FOREIGN KEY (preferred_tutor_id) REFERENCES students(id))";
 		Statement statement = databaseConnection.createStatement();
 		statement.executeUpdate(query);
 	}
@@ -51,16 +51,12 @@ public class TutoringRequestRepository {
 	}
 
 	public TutoringRequest getByAttributes(int studentId, int subjectId, Integer preferredTutorId) {
-		String query = "SELECT * FROM tutoring_requests WHERE student_id = ? AND subject_id = ? AND preferred_tutor_id = ?";
+		String query = "SELECT * FROM tutoring_requests WHERE student_id = ? AND subject_id = ?";
+
 		try {
 			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, studentId);
 			statement.setInt(2, subjectId);
-			if (preferredTutorId != null) {
-				statement.setInt(3, preferredTutorId);
-			} else {
-				statement.setNull(3, Types.INTEGER);
-			}
 			ResultSet resultSet = statement.executeQuery();
 			if (resultSet.next()) {
 				return resultSetToTutoringRequest(resultSet);

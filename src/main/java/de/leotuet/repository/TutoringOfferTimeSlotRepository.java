@@ -17,7 +17,7 @@ public class TutoringOfferTimeSlotRepository {
 		this.databaseConnection = databaseConnection;
 	}
 
-	public void createTable() throws SQLException {
+	public static void createTable(Connection databaseConnection) throws SQLException {
 		String query = "CREATE TABLE IF NOT EXISTS tutoring_offer_time_slots (" +
 				"offer_id INT NOT NULL, " +
 				"time_slot_id INT NOT NULL, " +
