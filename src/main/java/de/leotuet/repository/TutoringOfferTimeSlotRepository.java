@@ -57,6 +57,13 @@ public class TutoringOfferTimeSlotRepository {
 		return timeSlots;
 	}
 
+	public void deleteAllByTutorId(int tutorId) throws SQLException {
+		String query = "DELETE FROM tutoring_offer_time_slots WHERE offer_id IN (SELECT id FROM tutoring_offers WHERE tutor_id = ?)";
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, tutorId);
+		statement.executeUpdate();
+	}
+
 	public void deleteByOfferId(int offerId) throws SQLException {
 		String query = "DELETE FROM tutoring_offer_time_slots WHERE offer_id = ?";
 		PreparedStatement statement = databaseConnection.prepareStatement(query);

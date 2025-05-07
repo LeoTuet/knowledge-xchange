@@ -163,6 +163,23 @@ public class TutoringRequestRepository {
 		return tutoringRequests;
 	}
 
+	public ArrayList<TutoringRequest> getAllByStudentId(int studentId) {
+		ArrayList<TutoringRequest> tutoringRequests = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_requests WHERE student_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, studentId);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				tutoringRequests.add(resultSetToTutoringRequest(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringRequests;
+		}
+
+		return tutoringRequests;
+	}
+
 	public void deleteById(int id) throws SQLException {
 		String query = "DELETE FROM tutoring_requests WHERE id = ?";
 		PreparedStatement statement = databaseConnection.prepareStatement(query);

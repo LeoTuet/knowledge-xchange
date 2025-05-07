@@ -13,9 +13,15 @@ public class CommandLineInterface {
 
     public static int getInt(String message) {
         System.out.print(message + " ");
-        Scanner sc = new Scanner(System.in);
-        int input = sc.nextInt();
-        return input;
+        while (true) {
+            try {
+                Scanner sc = new Scanner(System.in);
+                int input = sc.nextInt();
+                return input;
+            } catch (Exception e) {
+                System.out.print("Ungültige Eingabe. Bitte geben Sie eine Zahl ein: ");
+            }
+        }
     }
 
     public static int getChoice(String... options) {

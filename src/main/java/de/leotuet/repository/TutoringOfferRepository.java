@@ -159,20 +159,21 @@ public class TutoringOfferRepository {
 		return tutoringOfferCounts;
 	}
 
-	public TutoringOffer getByTutorId(int tutorId) {
+	public ArrayList<TutoringOffer> getAllByTutorId(int tutorId) {
 		String query = "SELECT * FROM tutoring_offers WHERE tutor_id = ?";
+		ArrayList<TutoringOffer> tutoringOffers = new ArrayList<>();
 		try {
 			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, tutorId);
 			ResultSet resultSet = statement.executeQuery();
-			if (resultSet.next()) {
-				return resultSetToTutoringOffer(resultSet);
+			while (resultSet.next()) {
+				tutoringOffers.add(resultSetToTutoringOffer(resultSet));
 			}
 		} catch (SQLException e) {
-			return null;
+			return tutoringOffers;
 		}
 
-		return null;
+		return tutoringOffers;
 	}
 
 	public List<TutoringOffer> getAll() {
@@ -181,6 +182,23 @@ public class TutoringOfferRepository {
 		try {
 			Statement statement = databaseConnection.createStatement();
 			ResultSet resultSet = statement.executeQuery(query);
+			while (resultSet.next()) {
+				tutoringOffers.add(resultSetToTutoringOffer(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringOffers;
+		}
+
+		return tutoringOffers;
+	}
+
+	public ArrayList<TutoringOffer> getByTutorId(int tutorId) {
+		ArrayList<TutoringOffer> tutoringOffers = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_offers WHERE tutor_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, tutorId);
+			ResultSet resultSet = statement.executeQuery();
 			while (resultSet.next()) {
 				tutoringOffers.add(resultSetToTutoringOffer(resultSet));
 			}

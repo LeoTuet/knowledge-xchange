@@ -10,11 +10,11 @@ public class Main {
             "Manueller Import",
             "Generiere Gruppen",
             "Gruppen anzeigen",
+            "Verfügbarkeit ändern",
             "Beenden"
     };
 
     public static void main(String[] args) {
-        System.out.println((int) '1');
         boolean running = true;
         String url = "jdbc:mysql://127.0.0.1:3306/knowledge-xchange";
         String user = "root";
@@ -33,7 +33,8 @@ public class Main {
                     case 2 -> importer.startManualImport();
                     case 3 -> matcher.match();
                     case 4 -> displayer.displayGroups();
-                    case 5 -> {
+                    case 5 -> importer.changeAvailability();
+                    case 6 -> {
                         System.out.println("Beende Programm...");
                         running = false;
                     }

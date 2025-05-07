@@ -75,6 +75,25 @@ public class SubjectRepository {
 		return null;
 	}
 
+	public ArrayList<Subject> getAllByTutorId(int tutorId) {
+		ArrayList<Subject> subjects = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_offers " +
+				"JOIN subjects ON tutoring_offers.subject_id = subjects.id " +
+				"WHERE tutoring_offers.tutor_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, tutorId);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				subjects.add(resultSetToSubject(resultSet));
+			}
+		} catch (SQLException e) {
+			return subjects;
+		}
+
+		return subjects;
+	}
+
 	public List<Subject> getAll() {
 		List<Subject> subjects = new ArrayList<>();
 		String query = "SELECT * FROM subjects";

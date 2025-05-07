@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +29,8 @@ import de.leotuet.repository.TutoringRequestTimeSlotRepository;
 
 public class Importer {
 	private static final String[] USER_SELECTION = new String[] {
-			"Tutor Import",
-			"Schüler Import",
+			"Tutor",
+			"Schüler",
 			"Zurück"
 	};
 	private final StudentClassRepository studentClassRepository;
@@ -320,6 +321,17 @@ public class Importer {
 		};
 	}
 
+	private Student selectStudent(String user) {
+		String lastName = CommandLineInterface.getString("Nachname:");
+		String firstName = CommandLineInterface.getString("Vorname:");
+
+		String specialization = getSpecialization(user);
+		int classYear = getClassYearInput();
+
+		StudentClass studentClass = studentClassRepository.upsertAndGet(classYear, specialization);
+		return studentRepository.getByAttributes(firstName, lastName, studentClass.getId());
+	}
+
 	private Student selectPreferredTutor() {
 		System.out.println("Hast du einen bevorzugten Tutor?");
 		int choice = CommandLineInterface.getChoice("Ja", "Nein");
@@ -327,14 +339,7 @@ public class Importer {
 			return null;
 		}
 
-		String lastName = CommandLineInterface.getString("Nachname:");
-		String firstName = CommandLineInterface.getString("Vorname:");
-
-		String specialization = getSpecialization("Tutor");
-		int classYear = getClassYearInput();
-
-		StudentClass studentClass = studentClassRepository.upsertAndGet(classYear, specialization);
-		return studentRepository.getByAttributes(firstName, lastName, studentClass.getId());
+		return selectStudent("Tutor");
 	}
 
 	private void manualTutorImport() {
@@ -375,6 +380,78 @@ public class Importer {
 		for (Subject subject : subjects) {
 			Integer tutor = selectedTutor != null ? selectedTutor.getId() : null;
 			TutoringRequest tutoringRequest = tutoringRequestRepository.createAndGet(student.getId(), subject.getId(), tutor);
+			for (TimeSlot timeSlot : timeSlots) {
+				tutoringRequestTimeSlotRepository.create(tutoringRequest.getId(), timeSlot.getId());
+			}
+		}
+	}
+
+	public void changeAvailability() {
+		boolean running = true;
+		while (running) {
+			int choice = CommandLineInterface.getChoice(USER_SELECTION);
+			switch (choice) {
+				case 1 -> tutorAvailabilityChange();
+				case 2 -> studentAvailabilityChange();
+				case 3 -> {
+					running = false;
+				}
+			}
+		}
+	}
+
+	public void tutorAvailabilityChange() {
+		Student selectedTutor = selectStudent("Tutor");
+		if (selectedTutor == null) {
+			System.out.println("Der Tutor existiert nicht");
+			return;
+		}
+
+		ArrayList<TimeSlot> timeSlots = getTimeSlots("Zu welcher Zeit willst du unterrichten?");
+		ArrayList<TutoringOffer> tutoringOffers = tutoringOfferRepository.getAllByTutorId(selectedTutor.getId());
+
+		if (tutoringOffers.isEmpty()) {
+			System.out.println("Der Tutor hat keine Nachhilfeangebote");
+			return;
+		}
+
+		try {
+			tutoringOfferTimeSlotRepository.deleteAllByTutorId(selectedTutor.getId());
+		} catch (SQLException e) {
+			System.out.println("Fehler beim Löschen der Zeitblöcke: " + e.getMessage());
+			return;
+		}
+
+		for (TutoringOffer tutoringOffer : tutoringOffers) {
+			for (TimeSlot timeSlot : timeSlots) {
+				tutoringOfferTimeSlotRepository.create(tutoringOffer.getId(), timeSlot.getId());
+			}
+		}
+	}
+
+	public void studentAvailabilityChange() {
+		Student selectedTutor = selectStudent("Student");
+		if (selectedTutor == null) {
+			System.out.println("Der Student existiert nicht");
+			return;
+		}
+
+		ArrayList<TutoringRequest> tutoringRequests = tutoringRequestRepository.getAllByStudentId(selectedTutor.getId());
+		if (tutoringRequests.isEmpty()) {
+			System.out.println("Der Student hat keine Nachhilfeanfragen");
+			return;
+		}
+
+		ArrayList<TimeSlot> timeSlots = getTimeSlots("In welcher Zeit willst du jetzt Nachhilfe kriegen?");
+
+		try {
+			tutoringRequestTimeSlotRepository.deleteAllByStudentId(selectedTutor.getId());
+		} catch (SQLException e) {
+			System.out.println("Fehler beim Löschen der Zeitblöcke: " + e.getMessage());
+			return;
+		}
+
+		for (TutoringRequest tutoringRequest : tutoringRequests) {
 			for (TimeSlot timeSlot : timeSlots) {
 				tutoringRequestTimeSlotRepository.create(tutoringRequest.getId(), timeSlot.getId());
 			}

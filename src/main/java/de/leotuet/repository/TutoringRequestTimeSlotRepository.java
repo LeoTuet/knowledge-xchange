@@ -63,6 +63,13 @@ public class TutoringRequestTimeSlotRepository {
 		statement.executeUpdate();
 	}
 
+	public void deleteAllByStudentId(int studentId) throws SQLException {
+		String query = "DELETE FROM tutoring_request_time_slots WHERE request_id IN (SELECT id FROM tutoring_requests WHERE student_id = ?)";
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, studentId);
+		statement.executeUpdate();
+	}
+
 	private TutoringRequestTimeSlot resultSetToTutoringRequestTimeSlot(ResultSet resultSet) throws SQLException {
 		return new TutoringRequestTimeSlot(
 				resultSet.getInt("request_id"),
