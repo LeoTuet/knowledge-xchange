@@ -100,6 +100,69 @@ public class TutoringRequestRepository {
 		return requests;
 	}
 
+	public List<TutoringRequest> getAllBySpecializationAndSubject(String specialization, String subject) {
+		List<TutoringRequest> tutoringRequests = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_requests " +
+				"JOIN students ON tutoring_requests.student_id = students.id " +
+				"JOIN student_classes ON students.student_class_id = student_classes.id " +
+				"JOIN subjects ON tutoring_requests.subject_id = subjects.id " +
+				"WHERE student_classes.specialization = ? AND subjects.name = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setString(1, specialization);
+			statement.setString(2, subject);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				tutoringRequests.add(resultSetToTutoringRequest(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringRequests;
+		}
+
+		return tutoringRequests;
+	}
+
+	public List<TutoringRequest> getAllBySubject(String subject) {
+		List<TutoringRequest> tutoringRequests = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_requests " +
+				"JOIN subjects ON tutoring_requests.subject_id = subjects.id " +
+				"WHERE subjects.name = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setString(1, subject);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				tutoringRequests.add(resultSetToTutoringRequest(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringRequests;
+		}
+
+		return tutoringRequests;
+	}
+
+	public List<TutoringRequest> getAllExcludingSpecializationAndIncludingSubject(String specialization, String subject) {
+		List<TutoringRequest> tutoringRequests = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_requests " +
+				"JOIN students ON tutoring_requests.student_id = students.id " +
+				"JOIN student_classes ON students.student_class_id = student_classes.id " +
+				"JOIN subjects ON tutoring_requests.subject_id = subjects.id " +
+				"WHERE student_classes.specialization != ? AND subjects.name = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setString(1, specialization);
+			statement.setString(2, subject);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				tutoringRequests.add(resultSetToTutoringRequest(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringRequests;
+		}
+
+		return tutoringRequests;
+	}
+
 	public void deleteById(int id) throws SQLException {
 		String query = "DELETE FROM tutoring_requests WHERE id = ?";
 		PreparedStatement statement = databaseConnection.prepareStatement(query);

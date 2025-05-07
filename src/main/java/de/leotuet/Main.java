@@ -9,6 +9,7 @@ public class Main {
             "CSV Import",
             "Manueller Import",
             "Generiere Gruppen",
+            "Gruppen anzeigen",
             "Beenden"
     };
 
@@ -24,11 +25,15 @@ public class Main {
             while (running) {
                 int choice = CommandLineInterface.getChoice(PROGRAM_ACTIONS);
                 Importer importer = new Importer(conn);
+                Matcher matcher = new Matcher(conn);
+                Displayer displayer = new Displayer(conn);
+
                 switch (choice) {
                     case 1 -> importer.startCSVImport();
                     case 2 -> importer.startManualImport();
-                    case 3 -> System.out.println("Generiere Gruppen");
-                    case 4 -> {
+                    case 3 -> matcher.match();
+                    case 4 -> displayer.displayGroups();
+                    case 5 -> {
                         System.out.println("Beende Programm...");
                         running = false;
                     }

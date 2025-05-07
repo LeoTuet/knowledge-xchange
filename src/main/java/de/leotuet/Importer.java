@@ -32,14 +32,14 @@ public class Importer {
 			"Schüler Import",
 			"Zurück"
 	};
-	StudentClassRepository studentClassRepository;
-	StudentRepository studentRepository;
-	TimeSlotRepository timeSlotRepository;
-	SubjectRepository subjectRepository;
-	TutoringOfferRepository tutoringOfferRepository;
-	TutoringOfferTimeSlotRepository tutoringOfferTimeSlotRepository;
-	TutoringRequestRepository tutoringRequestRepository;
-	TutoringRequestTimeSlotRepository tutoringRequestTimeSlotRepository;
+	private final StudentClassRepository studentClassRepository;
+	private final StudentRepository studentRepository;
+	private final TimeSlotRepository timeSlotRepository;
+	private final SubjectRepository subjectRepository;
+	private final TutoringOfferRepository tutoringOfferRepository;
+	private final TutoringOfferTimeSlotRepository tutoringOfferTimeSlotRepository;
+	private final TutoringRequestRepository tutoringRequestRepository;
+	private final TutoringRequestTimeSlotRepository tutoringRequestTimeSlotRepository;
 
 	public Importer(Connection conn) {
 		this.studentClassRepository = new StudentClassRepository(conn);
@@ -311,7 +311,7 @@ public class Importer {
 		return timeSlots;
 	}
 
-	public int getClassYearInput() {
+	private int getClassYearInput() {
 		int choice = CommandLineInterface.getChoice("12. Klasse", "13. Klasse");
 		return switch (choice) {
 			case 1 -> 12;
@@ -320,7 +320,7 @@ public class Importer {
 		};
 	}
 
-	public Student selectPreferredTutor() {
+	private Student selectPreferredTutor() {
 		System.out.println("Hast du einen bevorzugten Tutor?");
 		int choice = CommandLineInterface.getChoice("Ja", "Nein");
 		if (choice == 2) {
@@ -337,7 +337,7 @@ public class Importer {
 		return studentRepository.getByAttributes(firstName, lastName, studentClass.getId());
 	}
 
-	public void manualTutorImport() {
+	private void manualTutorImport() {
 		String lastName = CommandLineInterface.getString("Nachname:");
 		String firstName = CommandLineInterface.getString("Vorname:");
 
@@ -358,7 +358,7 @@ public class Importer {
 		}
 	}
 
-	public void manualStudentImport() {
+	private void manualStudentImport() {
 		String lastName = CommandLineInterface.getString("Nachname:");
 		String firstName = CommandLineInterface.getString("Vorname:");
 

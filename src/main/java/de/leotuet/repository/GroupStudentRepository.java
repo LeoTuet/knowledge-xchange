@@ -29,36 +29,76 @@ public class GroupStudentRepository {
 		}
 	}
 
-	public void create(int groupId, int requestId) throws SQLException {
+	public GroupStudent create(int groupId, int requestId) {
 		String query = "INSERT INTO tutoring_group_students (group_id, request_id) VALUES (?, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, groupId);
 			statement.setInt(2, requestId);
 			statement.executeUpdate();
+
+		} catch (SQLException e) {
+			return null;
 		}
+
+		return getByAttributes(groupId, requestId);
 	}
 
-	public List<GroupStudent> getByGroupId(int groupId) throws SQLException {
+	public GroupStudent getByAttributes(int groupId, int requestId) {
+		String query = "SELECT * FROM tutoring_group_students WHERE group_id = ? AND request_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, groupId);
+			statement.setInt(2, requestId);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToGroupStudent(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+
+		return null;
+	}
+
+	public List<GroupStudent> getAllByGroupId(int groupId) {
 		List<GroupStudent> groupStudents = new ArrayList<>();
 		String query = "SELECT * FROM tutoring_group_students WHERE group_id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, groupId);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				while (resultSet.next()) {
-					groupStudents.add(new GroupStudent(
-							resultSet.getInt("group_id"),
-							resultSet.getInt("request_id")));
-				}
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				groupStudents.add(resultSetToGroupStudent(resultSet));
 			}
+		} catch (SQLException e) {
+			return null;
 		}
+
 		return groupStudents;
 	}
 
 	public void deleteByGroupId(int groupId) throws SQLException {
 		String query = "DELETE FROM tutoring_group_students WHERE group_id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, groupId);
-			statement.executeUpdate();
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, groupId);
+		statement.executeUpdate();
+	}
+
+	public void deleteAll() {
+		String query = "DELETE FROM tutoring_group_students";
+		try {
+			Statement statement = databaseConnection.createStatement();
+			statement.executeUpdate(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
+
+	}
+
+	public GroupStudent resultSetToGroupStudent(ResultSet resultSet) throws SQLException {
+		return new GroupStudent(
+				resultSet.getInt("group_id"),
+				resultSet.getInt("request_id"));
 	}
 }

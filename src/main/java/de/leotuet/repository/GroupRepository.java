@@ -29,51 +29,89 @@ public class GroupRepository {
 		}
 	}
 
-	public void create(int offerId, int timeSlotId) throws SQLException {
+	public Group create(int offerId, int timeSlotId) {
 		String query = "INSERT INTO tutoring_groups (id, offer_id, time_slot_id) VALUES (default, ?, ?)";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
 			statement.setInt(1, offerId);
 			statement.setInt(2, timeSlotId);
 			statement.executeUpdate();
+		} catch (SQLException e) {
+			return null;
 		}
+
+		return getByAttributes(offerId, timeSlotId);
 	}
 
-	public Group getById(int id) throws SQLException {
-		String query = "SELECT * FROM tutoring_groups WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					return new Group(
-							resultSet.getInt("id"),
-							resultSet.getString("offer_id"),
-							resultSet.getInt("time_slot_id"));
-				}
+	public Group getByAttributes(int offerId, int timeSlotId) {
+		String query = "SELECT * FROM tutoring_groups WHERE offer_id = ? AND time_slot_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, offerId);
+			statement.setInt(2, timeSlotId);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetTooGroup(resultSet);
 			}
+		} catch (SQLException e) {
+			return null;
+		}
+
+		return null;
+	}
+
+	public Group getById(int id) {
+		String query = "SELECT * FROM tutoring_groups WHERE id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, id);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetTooGroup(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
 		}
 		return null;
 	}
 
-	public List<Group> getAll() throws SQLException {
+	public List<Group> getAll() {
 		List<Group> groups = new ArrayList<>();
 		String query = "SELECT * FROM tutoring_groups";
-		try (Statement statement = databaseConnection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)) {
+		try {
+			Statement statement = databaseConnection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
 			while (resultSet.next()) {
-				groups.add(new Group(
-						resultSet.getInt("id"),
-						resultSet.getString("offer_id"),
-						resultSet.getInt("time_slot_id")));
+				groups.add(resultSetTooGroup(resultSet));
 			}
+		} catch (SQLException e) {
+			return groups;
 		}
+
 		return groups;
 	}
 
 	public void deleteById(int id) throws SQLException {
 		String query = "DELETE FROM tutoring_groups WHERE id = ?";
-		try (PreparedStatement statement = databaseConnection.prepareStatement(query)) {
-			statement.setInt(1, id);
-			statement.executeUpdate();
+		PreparedStatement statement = databaseConnection.prepareStatement(query);
+		statement.setInt(1, id);
+		statement.executeUpdate();
+	}
+
+	public void deleteAll() {
+		String query = "DELETE FROM tutoring_groups";
+		try {
+			Statement statement = databaseConnection.createStatement();
+			statement.executeUpdate(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
+	}
+
+	public Group resultSetTooGroup(ResultSet resultSet) throws SQLException {
+		return new Group(
+				resultSet.getInt("id"),
+				resultSet.getInt("offer_id"),
+				resultSet.getInt("time_slot_id"));
 	}
 }

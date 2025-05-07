@@ -2,10 +2,10 @@ package de.leotuet.models;
 
 public class Group {
 	private final int id;
-	private final String offerId;
+	private final int offerId;
 	private final int timeSlotId;
 
-	public Group(int id, String offerId, int timeSlotId) {
+	public Group(int id, int offerId, int timeSlotId) {
 		this.id = id;
 		this.offerId = offerId;
 		this.timeSlotId = timeSlotId;
@@ -15,7 +15,7 @@ public class Group {
 		return id;
 	}
 
-	public String getOfferId() {
+	public int getOfferId() {
 		return offerId;
 	}
 

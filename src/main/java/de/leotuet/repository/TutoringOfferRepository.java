@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import de.leotuet.models.TutoringOffer;
@@ -74,6 +75,104 @@ public class TutoringOfferRepository {
 
 		return null;
 
+	}
+
+	public List<TutoringOffer> getAllBySpecializationAndSubject(String specialization, String subject) {
+		List<TutoringOffer> tutoringOffers = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_offers " +
+				"JOIN students ON tutoring_offers.tutor_id = students.id " +
+				"JOIN student_classes ON students.student_class_id = student_classes.id " +
+				"JOIN subjects ON tutoring_offers.subject_id = subjects.id " +
+				"WHERE student_classes.specialization = ? AND subjects.name = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setString(1, specialization);
+			statement.setString(2, subject);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				tutoringOffers.add(resultSetToTutoringOffer(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringOffers;
+		}
+
+		return tutoringOffers;
+	}
+
+	public List<TutoringOffer> getAllExcludingSpecializationAndIncludingSubject(String specialization, String subject) {
+		List<TutoringOffer> tutoringOffers = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_offers " +
+				"JOIN students ON tutoring_offers.tutor_id = students.id " +
+				"JOIN student_classes ON students.student_class_id = student_classes.id " +
+				"JOIN subjects ON tutoring_offers.subject_id = subjects.id " +
+				"WHERE student_classes.specialization != ? AND subjects.name = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setString(1, specialization);
+			statement.setString(2, subject);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				tutoringOffers.add(resultSetToTutoringOffer(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringOffers;
+		}
+
+		return tutoringOffers;
+	}
+
+	public List<TutoringOffer> getAllBySubject(String subject) {
+		List<TutoringOffer> tutoringOffers = new ArrayList<>();
+		String query = "SELECT * FROM tutoring_offers " +
+				"JOIN subjects ON tutoring_offers.subject_id = subjects.id " +
+				"WHERE subjects.name = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setString(1, subject);
+			ResultSet resultSet = statement.executeQuery();
+			while (resultSet.next()) {
+				tutoringOffers.add(resultSetToTutoringOffer(resultSet));
+			}
+		} catch (SQLException e) {
+			return tutoringOffers;
+		}
+
+		return tutoringOffers;
+	}
+
+	public HashMap<Integer, Integer> getAllTutoringOfferCounts() {
+		String query = "SELECT tutor_id, COUNT(tutor_id) FROM tutoring_offers GROUP BY tutor_id";
+		HashMap<Integer, Integer> tutoringOfferCounts = new HashMap<>();
+
+		try {
+			Statement statement = databaseConnection.createStatement();
+			ResultSet resultSet = statement.executeQuery(query);
+			while (resultSet.next()) {
+				int tutorId = resultSet.getInt("tutor_id");
+				int count = resultSet.getInt("COUNT(tutor_id)");
+				tutoringOfferCounts.put(tutorId, count);
+			}
+		} catch (SQLException e) {
+			return tutoringOfferCounts;
+		}
+
+		return tutoringOfferCounts;
+	}
+
+	public TutoringOffer getByTutorId(int tutorId) {
+		String query = "SELECT * FROM tutoring_offers WHERE tutor_id = ?";
+		try {
+			PreparedStatement statement = databaseConnection.prepareStatement(query);
+			statement.setInt(1, tutorId);
+			ResultSet resultSet = statement.executeQuery();
+			if (resultSet.next()) {
+				return resultSetToTutoringOffer(resultSet);
+			}
+		} catch (SQLException e) {
+			return null;
+		}
+
+		return null;
 	}
 
 	public List<TutoringOffer> getAll() {
